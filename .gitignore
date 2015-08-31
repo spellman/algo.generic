@@ -1,1 +1,5 @@
 target/
+.lein-failures
+.lein-repl-history
+.nrepl-port
+*.patch
