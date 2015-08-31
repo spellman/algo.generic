@@ -111,16 +111,25 @@
   [x]
   (.abs x))
 
-(defmethod abs clojure.lang.BigInt
-  [x]
-  (if (nil? (.bipart x))
-    (clojure.lang.BigInt/fromLong (abs (.lpart x)))
-    (clojure.lang.BigInt/fromBigInteger (abs (.bipart x)))))
-
 (defmethod abs clojure.lang.Ratio
   [x]
   (/ (abs (numerator x))
      (abs (denominator x))))
+
+; Conditionally define a method for BigInt, introduced in Clojure 1.3,
+; for compatibility with Clojure 1.2.
+(def BigInt
+  (try
+    (java.lang.Class/forName "clojure.lang.BigInt")
+    (catch ClassNotFoundException e)))
+
+(when BigInt
+  (eval
+   '(defmethod abs clojure.lang.BigInt
+      [x]
+      (if (nil? (.bipart x))
+        (clojure.lang.BigInt/fromLong (abs (.lpart x)))
+        (clojure.lang.BigInt/fromBigInteger (abs (.bipart x)))))))
 
 ;
 ; Round
@@ -150,9 +159,13 @@
            java.lang.Short
            java.lang.Integer
            java.lang.Long
-           java.math.BigInteger
-           clojure.lang.BigInt]]
+           java.math.BigInteger]]
   (defmethod round c [x] x))
+
+; Conditionally define a method for BigInt, introduced in Clojure 1.3,
+; for compatibility with Clojure 1.2.
+(when BigInt
+  (defmethod round BigInt [x] x))
 
 (defmethod round java.math.BigDecimal
   [x math-context]
